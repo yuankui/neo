@@ -4,7 +4,9 @@ import NeoEditor from "./neo-editor/NeoEditor";
 
 
 function App() {
-    return <NeoEditor/>
+    return <div className={'container'}>
+        <NeoEditor/>
+    </div>
 }
 
 export default App;
