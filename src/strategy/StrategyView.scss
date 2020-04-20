@@ -1,0 +1,18 @@
+.strategy-view {
+    position: relative;
+    min-height: 50px;
+    .action-btn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        visibility: hidden;
+
+        .strategy-view:hover & {
+            display: flex;
+        }
+    }
+
+    &:hover .action-btn {
+        visibility: visible;
+    }
+}
