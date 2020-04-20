@@ -3,6 +3,6 @@ interface Any {
 }
 export interface Node extends Any {
     type: string,
-    data: any,
-    children: Array<Node>,
+    data?: any,
+    children?: Array<Node>,
 }
