@@ -5,11 +5,14 @@ import {from} from "rxjs";
 import {NeoFunctionName, NeoFunctionParam, NeoFunctionProvider} from "./models/functions";
 import {Path} from "./models/path";
 import {GetNodeFunction} from "./functions/get-node";
+import {NeoNodeRender, NeoNodeRenderHookName} from "./render/node-render";
+import {Node} from "./models/node";
 
 export class Editor {
     hookRegister: HookRegister;
     value: Value;
     functionProviders: {[key: string]: Array<NeoFunctionProvider<any>>};
+    nodeRenders: {[key: string]: Array<NeoNodeRender>};
     constructor(value: Value, consumers?: Array<HookRegisterConsumer>) {
         this.value = value;
         this.hookRegister = new HookRegister();
@@ -22,7 +25,11 @@ export class Editor {
                 .pipe(
                     groupBy(hook => hook.hook.name),
                     mergeMap(group => {
-                        return [group.key, group.pipe(map(h => h.hook), toArray())] as [string, any];
+                        return group.pipe(
+                            map(h => h.hook),
+                            toArray(),
+                            map(arr => [group.key, arr]),
+                        );
                     }),
                     toArray(),
                 )
@@ -30,6 +37,26 @@ export class Editor {
                     this.functionProviders = Object.fromEntries(entries);
                 })
         });
+
+        // listen node-renders
+        this.nodeRenders = {};
+        this.hookRegister.listen<NeoNodeRender>(NeoNodeRenderHookName, hook => {
+            let renders = this.hookRegister.getHooks<NeoNodeRender>(NeoNodeRenderHookName);
+            from(renders)
+                .pipe(
+                    groupBy(hook=> hook.hook.name),
+                    mergeMap(group=> {
+                        return group.pipe(
+                            map(h => h.hook),
+                            toArray(),
+                            map(arr => [group.key, arr]),
+                        );
+                    })
+                )
+                .subscribe(entries => {
+                    this.nodeRenders = Object.fromEntries(entries as any);
+                })
+        })
 
         if (consumers) {
             consumers.forEach(c => {
@@ -57,11 +84,27 @@ export class Editor {
     }
 
     // 发送事件
-    public fireEvent(type: string, path: Path, args?: Array<any>) {
-        let node = this.run<Node | null>(GetNodeFunction);
-        let next = () => null as any;
-        const currentPath = [path[0]];
+    public fireEvent(type: string, path: Path, args: any) {
+        const tmpPath = [...path];
+        let done = false;
 
+        // 从最底层node开始
+        while (tmpPath.length != 0) {
+            let node = this.run<Node | null>(GetNodeFunction, [tmpPath]);
+            let renders = this.nodeRenders[node.type];
+
+            // 遍历所有可能的渲染器
+            for (let render of renders) {
+                render.onEvent(type, node, args || [], () => {
+                    done = true;
+                })
+
+                if (done) {
+                    return;
+                }
+            }
+            tmpPath.pop();
+        }
     }
 
     public setValue(value: Value) {
