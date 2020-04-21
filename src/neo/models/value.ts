@@ -2,13 +2,13 @@ import {Node} from "./node";
 import {Selection} from "./selection";
 
 export interface Value {
-    value: Array<Node>,
+    nodes: Array<Node>,
     selection?: Selection,
 }
 
 export function emptyValue(): Value {
     return {
-        value: [
+        nodes: [
             {
                 type: 'block-p',
                 children: [

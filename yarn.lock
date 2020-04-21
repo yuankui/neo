@@ -7822,10 +7822,10 @@ neo-async@^2.5.0, neo-async@^2.6.1:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
   integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
 
-neo-hooks@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/neo-hooks/-/neo-hooks-0.0.6.tgz#768f6a81fc1fc053869771b4c6226f40b452f1c7"
-  integrity sha512-RMYUK+IFQC9NT2e/rzUfijxIV95LxqPJgBaSiW7aQp8dp6ulbgWEawtaMpunkx8k/M6G19Q/HT8LaNv2OxBmfQ==
+neo-hooks@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/neo-hooks/-/neo-hooks-0.0.7.tgz#b98105659a2bea556831735b17735706ba8f671e"
+  integrity sha512-d56VoNToDqnf9Tz4cuWezFCWD5aZC4dOkxZUhwrkU1sKM+ri8N7fHS7ywYUwyqRgmbqDtWUTRmnaK8S92K8Tmg==
   dependencies:
     "@types/chai" "^4.2.11"
     "@types/chai-arrays" "^1.0.3"

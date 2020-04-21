@@ -1,4 +1,4 @@
 export interface Point {
-    path: Array<string>,
+    path: Array<number>,
     offset: number,
 }

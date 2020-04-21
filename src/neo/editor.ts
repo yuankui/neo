@@ -1,14 +1,35 @@
 import {HookRegister, HookRegisterConsumer} from "neo-hooks";
 import {Value} from "./models/value";
-import {Command, CommandFunc} from "./models/command";
-import {Query, QueryFunc} from "./models/query";
+import {groupBy, map, mergeMap, toArray} from "rxjs/operators";
+import {from} from "rxjs";
+import {NeoFunctionName, NeoFunctionParam, NeoFunctionProvider} from "./models/functions";
+import {Path} from "./models/path";
+import {GetNodeFunction} from "./functions/get-node";
 
 export class Editor {
     hookRegister: HookRegister;
     value: Value;
+    functionProviders: {[key: string]: Array<NeoFunctionProvider<any>>};
     constructor(value: Value, consumers?: Array<HookRegisterConsumer>) {
         this.value = value;
         this.hookRegister = new HookRegister();
+
+        // listen query providers
+        this.functionProviders = {};
+        this.hookRegister.listen<NeoFunctionProvider<any>>(NeoFunctionName, hook => {
+            let providers = this.hookRegister.getHooks<NeoFunctionProvider<any>>(NeoFunctionName);
+            from(providers)
+                .pipe(
+                    groupBy(hook => hook.hook.name),
+                    mergeMap(group => {
+                        return [group.key, group.pipe(map(h => h.hook), toArray())] as [string, any];
+                    }),
+                    toArray(),
+                )
+                .subscribe(entries => {
+                    this.functionProviders = Object.fromEntries(entries);
+                })
+        });
 
         if (consumers) {
             consumers.forEach(c => {
@@ -17,26 +38,30 @@ export class Editor {
         }
     }
 
-    public command(command: Command): void {
-        let hooks = this.hookRegister.getHooks<CommandFunc>('command');
-        const next = hooks.reduceRight((func, hook) => {
-            return () => {
-                hook.hook(command, this, func);
-            }
-        }, () => {})
+    public run<T>(type: string, args?: Array<any>): T | any {
+        const functions = this.functionProviders[type]
+        if (!functions) {
+            return;
+        }
 
-        return next();
-    }
-
-    public query<T>(query: Query): T {
-        let hooks = this.hookRegister.getHooks<QueryFunc<T>>('query');
-        const next = hooks.reduceRight((func, hook) => {
+        const next = functions.reduceRight((n, func) => {
             return () => {
-                hook.hook(query, this, func);
+                func.run({
+                    type,
+                    args
+                }, this, n);
             }
         }, () => null as any)
 
         return next();
+    }
+
+    // 发送事件
+    public fireEvent(type: string, path: Path, args?: Array<any>) {
+        let node = this.run<Node | null>(GetNodeFunction);
+        let next = () => null as any;
+        const currentPath = [path[0]];
+
     }
 
     public setValue(value: Value) {

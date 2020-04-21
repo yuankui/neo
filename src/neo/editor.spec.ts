@@ -14,7 +14,7 @@ test("hello", () => {
                     id: 'init-command',
                     hook: (command, editor1, next) => {
                         editor1.setValue({
-                            value: [
+                            nodes: [
                                 {
                                     type: 'block-p',
                                     children: [
