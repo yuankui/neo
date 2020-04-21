@@ -1,17 +1,18 @@
 import {Editor} from "../editor";
 
-export interface NeoFunctionParam {
+export interface NeoFunctionParam<T = any> {
     type: string,
-    args?: Array<any>
+    args: T,
 }
 
 export interface NeoFunction<T> {
     (params: NeoFunctionParam, editor: Editor, next: () => T | null): T | null;
 }
 
-export interface NeoFunctionProvider<T> {
+export interface NeoFunctionProvider<IN = any, OUT = any> {
     name: string,
-    run(param: NeoFunctionParam, editor: Editor, next: () => T): T;
+
+    run(param: NeoFunctionParam<IN>, editor: Editor, next: () => OUT): OUT;
 }
 
 export const NeoFunctionName = "query.provider";
